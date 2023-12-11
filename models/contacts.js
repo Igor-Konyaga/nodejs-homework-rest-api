@@ -1,7 +1,8 @@
 const fs = require("fs/promises");
 const { nanoid } = require("nanoid");
 const path = require("path");
-
+const { httpError } = require("../helpers/httpError");
+const { createUserValidator } = require("../utils/userValidators");
 const contactsPath = path.join(__dirname, "contacts.json");
 
 const listContacts = async () => {
@@ -16,7 +17,6 @@ const getContactById = async (contactId) => {
   return result || null;
 };
 
-
 const removeContact = async (contactId) => {
   const contacts = await listContacts();
   const index = contacts.findIndex((contact) => contact.id === contactId);
@@ -30,13 +30,20 @@ const removeContact = async (contactId) => {
   return result;
 };
 
-const addContact = async ({ name, email, phone }) => {
+const addContact = async (data) => {
+  const { value, error } = createUserValidator(data);
+
+  if (error) throw httpError(400, "Invalid user data!");
+
+  const { name, email, phone } = value;
+
   const newContact = {
     id: nanoid(),
     name,
     email,
     phone,
   };
+
   const contacts = await listContacts();
   contacts.push(newContact);
 
@@ -46,10 +53,14 @@ const addContact = async ({ name, email, phone }) => {
 };
 
 const updateContact = async (contactId, body) => {
+  const { value, error } = createUserValidator(body);
+
+  if (error) throw httpError(400, "Invalid user data!");
+
   const contacts = await listContacts();
   const updateContact = contacts.find((contact) => contact.id === contactId);
 
-  const result = { ...updateContact, ...body };
+  const result = { ...updateContact, ...value };
 
   return result;
 };

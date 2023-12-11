@@ -41,7 +41,7 @@ router.post("/", async (req, res, next) => {
 
     res.status(201).json(newContact);
   } catch (error) {
-    console.log("error: ", error);
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -78,7 +78,7 @@ router.put("/:contactId", async (req, res, next) => {
 
     res.status(200).json(contact);
   } catch (error) {
-    console.log("error: ", error);
+    res.status(400).json({ message: error.message });
   }
 });
 
