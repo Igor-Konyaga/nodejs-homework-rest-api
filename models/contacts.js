@@ -30,13 +30,7 @@ const removeContact = async (contactId) => {
   return result;
 };
 
-const addContact = async (data) => {
-  const { value, error } = createUserValidator(data);
-
-  if (error) throw httpError(400, "Invalid user data!");
-
-  const { name, email, phone } = value;
-
+const addContact = async ({ name, email, phone }) => {
   const newContact = {
     id: nanoid(),
     name,
@@ -53,14 +47,10 @@ const addContact = async (data) => {
 };
 
 const updateContact = async (contactId, body) => {
-  const { value, error } = createUserValidator(body);
-
-  if (error) throw httpError(400, "Invalid user data!");
-
   const contacts = await listContacts();
   const updateContact = contacts.find((contact) => contact.id === contactId);
 
-  const result = { ...updateContact, ...value };
+  const result = { ...updateContact, ...body };
 
   return result;
 };

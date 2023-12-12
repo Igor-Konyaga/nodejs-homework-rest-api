@@ -6,6 +6,8 @@ const {
   removeContact,
   updateContact,
 } = require("../../models/contacts");
+const { createUserValidator } = require("../../utils/userValidators");
+const { httpError } = require("../../helpers/httpError");
 
 const router = express.Router();
 
@@ -37,11 +39,15 @@ router.get("/:contactId", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const newContact = await addContact(req.body);
+    const { value, error } = createUserValidator(req.body);
+
+    const newContact = await addContact(value);
+
+    if (error) throw httpError(400, "Invalid user data!");
 
     res.status(201).json(newContact);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(error.status).json({ message: error.message });
   }
 });
 
@@ -62,13 +68,12 @@ router.put("/:contactId", async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const contact = await updateContact(id, req.body);
+    const { value, error } = createUserValidator(req.body);
+    console.log("error: ", error);
 
-    if (!req.body) {
-      res.status(400).json({ message: "missing fields" });
+    const contact = await updateContact(id, value);
 
-      return;
-    }
+    if (error) throw httpError(400, "Invalid user data!");
 
     if (!contact) {
       res.status(404).json({ message: "Not Found" });
@@ -78,7 +83,7 @@ router.put("/:contactId", async (req, res, next) => {
 
     res.status(200).json(contact);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(error.status).json({ message: error.message });
   }
 });
 
