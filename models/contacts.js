@@ -1,8 +1,6 @@
 const fs = require("fs/promises");
 const { nanoid } = require("nanoid");
 const path = require("path");
-const { httpError } = require("../helpers/httpError");
-const { createUserValidator } = require("../utils/userValidators");
 const contactsPath = path.join(__dirname, "contacts.json");
 
 const listContacts = async () => {

@@ -41,9 +41,9 @@ router.post("/", async (req, res, next) => {
   try {
     const { value, error } = createUserValidator(req.body);
 
-    const newContact = await addContact(value);
-
     if (error) throw httpError(400, "Invalid user data!");
+
+    const newContact = await addContact(value);
 
     res.status(201).json(newContact);
   } catch (error) {
@@ -69,11 +69,10 @@ router.put("/:contactId", async (req, res, next) => {
     const { id } = req.params;
 
     const { value, error } = createUserValidator(req.body);
-    console.log("error: ", error);
-
-    const contact = await updateContact(id, value);
 
     if (error) throw httpError(400, "Invalid user data!");
+
+    const contact = await updateContact(id, value);
 
     if (!contact) {
       res.status(404).json({ message: "Not Found" });
