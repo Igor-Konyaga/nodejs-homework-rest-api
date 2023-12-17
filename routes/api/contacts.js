@@ -17,7 +17,7 @@ router.get("/", async (req, res, next) => {
 
     res.status(200).json(contacts);
   } catch (error) {
-    console.log("error: ", error);
+    next(error);
   }
 });
 
@@ -33,7 +33,7 @@ router.get("/:contactId", async (req, res, next) => {
 
     res.status(200).json(contact);
   } catch (error) {
-    console.log("error: ", error);
+    next(error);
   }
 });
 
