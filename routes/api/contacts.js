@@ -1,82 +1,25 @@
 const express = require("express");
-const { createUserValidator } = require("../../utils/userValidators");
-const { httpError } = require("../../helpers/httpError");
-const Contact = require("../../models/contact.model");
+const {
+  getContacts,
+  getContact,
+  createContact,
+  deleteContact,
+  updateStatusContact,
+  updateContact,
+} = require("../../controllers");
 
 const router = express.Router();
 
-// router.get("/", async (req, res, next) => {
-//   try {
+router.get("/", getContacts);
 
-//     res.status(200).json(contacts);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
+router.get("/:contactId", getContact);
 
-// router.get("/:contactId", async (req, res, next) => {
-//   try {
-//     const { contactId } = req.params;
-//     const contact = await getContactById(contactId);
+router.post("/", createContact);
 
-//     if (!contact) {
-//       res.status(404).json({ message: "Not Foun" });
-//       return;
-//     }
+router.delete("/:contactId", deleteContact);
 
-//     res.status(200).json(contact);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
+router.patch("/:contactId", updateContact);
 
-router.post("/", async (req, res, next) => {
-  try {
-    //  const { value, error } = createUserValidator(req.body);
-
-    //  if (error) throw httpError(400, "Invalid user data!");
-
-    const newContact = await Contact.create(req.body);
-
-    res.status(201).json(newContact);
-  } catch (error) {
-    res.status(error.status).json({ message: error.message });
-  }
-});
-
-// router.delete("/:contactId", async (req, res, next) => {
-//   const { contactId } = req.params;
-//   const deleteContact = await removeContact(contactId);
-
-//   if (!deleteContact) {
-//     res.status(404).json({ message: "Not Found" });
-
-//     return;
-//   }
-
-//   res.status(200).json({ message: "contact deleted" });
-// });
-
-// router.put("/:contactId", async (req, res, next) => {
-//   try {
-//     const { id } = req.params;
-
-//     const { value, error } = createUserValidator(req.body);
-
-//     if (error) throw httpError(400, "Invalid user data!");
-
-//     const contact = await updateContact(id, value);
-
-//     if (!contact) {
-//       res.status(404).json({ message: "Not Found" });
-
-//       return;
-//     }
-
-//     res.status(200).json(contact);
-//   } catch (error) {
-//     res.status(error.status).json({ message: error.message });
-//   }
-// });
+router.patch("/:contactId/favorite", updateStatusContact);
 
 module.exports = router;
