@@ -1,10 +1,11 @@
 const { Types } = require("mongoose");
-const Contact = require("../models/contact.model");
+
 const { HttpError, updateStatusContact } = require("../helpers");
 const {
   createContactValidator,
   updateContactValidator,
 } = require("../utils/contactValidators");
+const Contact = require("../models/contactModel");
 
 exports.getContacts = async (req, res, next) => {
   try {
