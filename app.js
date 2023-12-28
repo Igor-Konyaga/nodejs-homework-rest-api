@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
 const contactsRouter = require("./routes/api/contacts");
-const usersRouter = require("./routes/api/users");
+const usersRouter = require("./routes/api/auth");
 
 const app = express();
 

@@ -1,4 +1,4 @@
-const Contact = require("../models/contact.model");
+const Contact = require("../models/contactModel");
 
 exports.updateStatusContact = async (id, body) => {
   const updateContact = await Contact.findByIdAndUpdate(id, body, {
