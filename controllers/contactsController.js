@@ -6,7 +6,8 @@ const {
   updateContactValidator,
 } = require("../utils/validators/contactValidators");
 
-const { Contact } = require("../models/contactModel");
+const Contact = require("../models/contactModel");
+
 
 exports.getContacts = async (req, res, next) => {
   try {

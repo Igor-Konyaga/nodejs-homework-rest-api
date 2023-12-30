@@ -12,7 +12,16 @@ const registerUserValidator = (data) => {
     })
     .validate(data);
 };
+const loginUserValidator = (data) => {
+  return Joi.object()
+    .keys({
+      password: Joi.string().min(6).required().regex(regex.PASSWD_REGEX),
+      email: Joi.string().email().required(),
+    })
+    .validate(data);
+};
 
 module.exports = {
   registerUserValidator,
+  loginUserValidator,
 };
