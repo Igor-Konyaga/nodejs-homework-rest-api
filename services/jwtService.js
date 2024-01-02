@@ -7,8 +7,8 @@ exports.userToken = (id) =>
   });
 
 exports.checkToken = (token) => {
-  if (!token) throw new HttpError(401, "Not authorized");
   try {
+    if (!token) throw new HttpError(401, "Not authorized");
     const { id } = jwt.verify(token, process.env.JWT_SECRET);
 
     return id;

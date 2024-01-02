@@ -44,17 +44,40 @@ exports.login = async (req, res, next) => {
 
     const user = await User.findOne({ email: value.email }).select("+password");
 
-    if (!user) throw new HttpError(401, "Not authorized");
+    if (!user) throw new HttpError(401, "Email or password is wrong");
 
     const isValidPassword = await bcrypt.compare(value.password, user.password);
 
-    if (!isValidPassword) throw new HttpError(401, "Not authorized");
+    if (!isValidPassword)
+      throw new HttpError(401, "Email or password is wrong");
 
     user.password = undefined;
 
     const token = userToken(user.id);
 
     res.status(200).json({ ResponseBody: { token, user } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.logout = (req, res, next) => {
+  try {
+    req.user.token = undefined;
+
+    res.sendStatus(204);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.current = (req, res, next) => {
+  try {
+    const currentUser = req.user;
+
+    if (!currentUser) throw new HttpError(401, "Not authorized");
+
+    res.status(200).json(currentUser);
   } catch (error) {
     next(error);
   }

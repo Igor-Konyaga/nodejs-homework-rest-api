@@ -8,12 +8,24 @@ const {
 
 const Contact = require("../models/contactModel");
 
-
 exports.getContacts = async (req, res, next) => {
   try {
-    const contacts = await Contact.find();
+    const favoriteOption = req.query.favorite
+      ? { favorite: req.query.favorite }
+      : {};
 
-    res.status(200).json(contacts);
+    const paginationPage = req.query.page ? Number(req.query.page) : 1;
+    const paginationLimit = req.query.limit ? Number(req.query.limit) : 10;
+
+    const docsToSkip = (paginationPage - 1) * paginationLimit;
+
+    const contacts = await Contact.find(favoriteOption)
+      .limit(paginationLimit)
+      .skip(docsToSkip);
+
+    const total = await Contact.countDocuments(favoriteOption);
+
+    res.status(200).json({ total, contacts });
   } catch (error) {
     next(error);
   }
@@ -43,7 +55,17 @@ exports.createContact = async (req, res, next) => {
 
     if (error) throw new HttpError(400, "Invalid user data!");
 
-    const newContact = await Contact.create(value);
+    const { name, email, phone, favorite } = value;
+
+    const dataContact = {
+      name,
+      email,
+      phone,
+      favorite,
+      owner: req.user,
+    };
+
+    const newContact = await Contact.create(dataContact);
 
     res.status(201).json(newContact);
   } catch (error) {

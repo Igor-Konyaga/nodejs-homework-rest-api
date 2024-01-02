@@ -1,8 +1,17 @@
 const express = require("express");
-const {  getContact, createContact, deleteContact, updateContact, updateStatusContact, getContacts } = require("../../controllers/contactsController");
-
+const {
+  getContact,
+  createContact,
+  deleteContact,
+  updateContact,
+  updateStatusContact,
+  getContacts,
+} = require("../../controllers/contactsController");
+const { protect } = require("../../middlewares/authMiddleware");
 
 const router = express.Router();
+
+router.use(protect);
 
 router.get("/", getContacts);
 
