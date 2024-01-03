@@ -20,8 +20,16 @@ const loginUserValidator = (data) => {
     })
     .validate(data);
 };
+const subscriptionUserValidator = (data) => {
+  return Joi.object()
+    .keys({
+      subscription: Joi.string().valid("starter", "pro", "business").required(),
+    })
+    .validate(data);
+};
 
 module.exports = {
   registerUserValidator,
   loginUserValidator,
+  subscriptionUserValidator,
 };

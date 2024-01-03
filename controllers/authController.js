@@ -1,11 +1,13 @@
 const {
   registerUserValidator,
   loginUserValidator,
+  subscriptionUserValidator,
 } = require("../utils/validators/userValidators");
 const { HttpError } = require("../utils/httpError");
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const { userToken } = require("../services/jwtService");
+const { json } = require("express");
 
 exports.register = async (req, res, next) => {
   try {
@@ -78,6 +80,26 @@ exports.current = (req, res, next) => {
     if (!currentUser) throw new HttpError(401, "Not authorized");
 
     res.status(200).json(currentUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateSubscriptionUser = async (req, res, next) => {
+  try {
+    if (!req.body) throw new HttpError(400, "missing field favorite");
+
+    const { value, error } = subscriptionUserValidator(req.body);
+
+    if (error) throw new HttpError(404, "Not Found");
+
+    const updateUser = await User.findByIdAndUpdate(req.user.id, value, {
+      new: true,
+    });
+
+    if (!updateUser) throw new HttpError(404, "Not Found");
+
+    res.status(200).json(updateUser);
   } catch (error) {
     next(error);
   }
