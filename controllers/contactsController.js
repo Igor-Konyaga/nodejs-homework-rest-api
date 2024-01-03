@@ -10,20 +10,24 @@ const Contact = require("../models/contactModel");
 
 exports.getContacts = async (req, res, next) => {
   try {
-    const favoriteOption = req.query.favorite
-      ? { favorite: req.query.favorite }
-      : {};
+    const favoriteOption = req.query.favorite ? req.query.favorite : "";
 
     const paginationPage = req.query.page ? Number(req.query.page) : 1;
     const paginationLimit = req.query.limit ? Number(req.query.limit) : 10;
 
     const docsToSkip = (paginationPage - 1) * paginationLimit;
 
-    const contacts = await Contact.find(favoriteOption)
+    const contacts = await Contact.find({
+      owner: req.user._id,
+      favorite: favoriteOption,
+    })
       .limit(paginationLimit)
       .skip(docsToSkip);
 
-    const total = await Contact.countDocuments(favoriteOption);
+    const total = await Contact.countDocuments({
+      owner: req.user._id,
+      favorite: favoriteOption,
+    });
 
     res.status(200).json({ total, contacts });
   } catch (error) {
@@ -77,7 +81,9 @@ exports.deleteContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
 
-    if (!contactId) throw new HttpError(404, "Not Found");
+    const isValidId = Types.ObjectId.isValid(contactId);
+
+    if (!isValidId) throw new HttpError(404, "User not found");
 
     const deleteContact = await Contact.findByIdAndDelete(contactId);
 
@@ -92,6 +98,10 @@ exports.deleteContact = async (req, res, next) => {
 exports.updateContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
+
+    const isValidId = Types.ObjectId.isValid(contactId);
+
+    if (!isValidId) throw new HttpError(404, "User not found");
 
     const { value, error } = updateContactValidator(req.body);
 
