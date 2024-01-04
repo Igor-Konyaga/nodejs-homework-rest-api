@@ -1,5 +1,5 @@
 const User = require("../models/userModel");
-const { checkToken } = require("../services/jwtService");
+const { checkToken } = require("../services/jwtServices");
 const { HttpError } = require("../utils/httpError");
 
 exports.protect = async (req, res, next) => {

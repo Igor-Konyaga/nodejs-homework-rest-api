@@ -6,8 +6,7 @@ const {
 const { HttpError } = require("../utils/httpError");
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
-const { userToken } = require("../services/jwtService");
-const { json } = require("express");
+const { userToken } = require("../services/jwtServices");
 
 exports.register = async (req, res, next) => {
   try {

@@ -1,33 +1,33 @@
-const { Types } = require("mongoose");
 const { HttpError } = require("../utils/httpError");
-const { updateStatusContact } = require("../utils/updateStatusContact");
+const {
+  updateStatusContact,
+  createUser,
+} = require("../services/contactsServices");
 const {
   createContactValidator,
   updateContactValidator,
+  updateStatusContactValidator,
 } = require("../utils/validators/contactValidators");
-
 const Contact = require("../models/contactModel");
 
 exports.getContacts = async (req, res, next) => {
   try {
-    const favoriteOption = req.query.favorite ? req.query.favorite : "";
+    const favorite = req.query.favorite;
+    const favoriteOption = favorite ? { favorite } : {};
 
     const paginationPage = req.query.page ? Number(req.query.page) : 1;
     const paginationLimit = req.query.limit ? Number(req.query.limit) : 10;
 
     const docsToSkip = (paginationPage - 1) * paginationLimit;
 
-    const contacts = await Contact.find({
-      owner: req.user._id,
-      favorite: favoriteOption,
-    })
+    const contacts = await Contact.find({ owner: req.user._id }, favoriteOption)
       .limit(paginationLimit)
       .skip(docsToSkip);
 
-    const total = await Contact.countDocuments({
-      owner: req.user._id,
-      favorite: favoriteOption,
-    });
+    const total = await Contact.countDocuments(
+      { owner: req.user._id },
+      favoriteOption
+    );
 
     res.status(200).json({ total, contacts });
   } catch (error) {
@@ -39,11 +39,12 @@ exports.getContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
 
-    const isValidId = Types.ObjectId.isValid(contactId);
+    const contact = await Contact.findById(contactId).populate(
+      "owner",
+      "-password"
+    );
 
-    if (!isValidId) throw new HttpError(404, "User not found");
-
-    const contact = await Contact.findById(contactId);
+    if (req.user.id !== contact.owner.id) throw new HttpError(404, "Not found");
 
     if (!contact) throw new HttpError(404, "User not found");
 
@@ -59,17 +60,9 @@ exports.createContact = async (req, res, next) => {
 
     if (error) throw new HttpError(400, "Invalid user data!");
 
-    const { name, email, phone, favorite } = value;
+    const newContact = await createUser(value, req.user);
 
-    const dataContact = {
-      name,
-      email,
-      phone,
-      favorite,
-      owner: req.user,
-    };
-
-    const newContact = await Contact.create(dataContact);
+    if (!newContact) throw new HttpError(404, "Not Found!");
 
     res.status(201).json(newContact);
   } catch (error) {
@@ -80,10 +73,6 @@ exports.createContact = async (req, res, next) => {
 exports.deleteContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-
-    const isValidId = Types.ObjectId.isValid(contactId);
-
-    if (!isValidId) throw new HttpError(404, "User not found");
 
     const deleteContact = await Contact.findByIdAndDelete(contactId);
 
@@ -98,10 +87,6 @@ exports.deleteContact = async (req, res, next) => {
 exports.updateContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-
-    const isValidId = Types.ObjectId.isValid(contactId);
-
-    if (!isValidId) throw new HttpError(404, "User not found");
 
     const { value, error } = updateContactValidator(req.body);
 
@@ -122,11 +107,12 @@ exports.updateContact = async (req, res, next) => {
 exports.updateStatusContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const body = req.body;
 
-    if (!body) throw new HttpError(400, "missing field favorite");
+    const { value, error } = updateStatusContactValidator(req.body);
 
-    const updateContact = await updateStatusContact(contactId, body);
+    if (error) throw new HttpError(400, "missing field favorite");
+
+    const updateContact = await updateStatusContact(contactId, value);
 
     if (!updateContact) throw new HttpError(404, "Not Found");
 
