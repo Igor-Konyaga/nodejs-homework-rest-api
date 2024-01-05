@@ -108,3 +108,19 @@ exports.updateSubscriptionUser = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.updateUserAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) throw new HttpError(401, "Not authorized");
+
+    req.user.avatarUrl = req.file.path.replace("tmp", "");
+
+    res.status(200).json({
+      ResponseBody: {
+        avatarUrl: req.user.avatarUrl,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
