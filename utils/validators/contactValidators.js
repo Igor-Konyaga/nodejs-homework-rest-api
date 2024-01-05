@@ -20,8 +20,16 @@ const updateContactValidator = (data) => {
     })
     .validate(data);
 };
+const updateStatusContactValidator = (data) => {
+  return Joi.object()
+    .keys({
+      favorite: Joi.boolean().default(false).required(),
+    })
+    .validate(data);
+};
 
 module.exports = {
   createContactValidator,
-  updateContactValidator
+  updateContactValidator,
+  updateStatusContactValidator,
 };
