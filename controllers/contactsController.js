@@ -1,10 +1,6 @@
 const { HttpError } = require("../utils/httpError");
+const { updateStatusContact } = require("../services/contactsServices");
 const {
-  updateStatusContact,
-  createUser,
-} = require("../services/contactsServices");
-const {
-  createContactValidator,
   updateContactValidator,
   updateStatusContactValidator,
 } = require("../utils/validators/contactValidators");
@@ -56,13 +52,7 @@ exports.getContact = async (req, res, next) => {
 
 exports.createContact = async (req, res, next) => {
   try {
-    const { value, error } = createContactValidator(req.body);
-
-    if (error) throw new HttpError(400, "Invalid user data!");
-
-    const newContact = await createUser(value, req.user);
-
-    if (!newContact) throw new HttpError(404, "Not Found!");
+    const newContact = await req.contact;
 
     res.status(201).json(newContact);
   } catch (error) {

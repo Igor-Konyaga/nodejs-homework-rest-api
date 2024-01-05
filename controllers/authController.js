@@ -1,3 +1,5 @@
+const gravatar = require("gravatar");
+
 const {
   registerUserValidator,
   loginUserValidator,
@@ -18,9 +20,12 @@ exports.register = async (req, res, next) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    const avatarUrl = gravatar.url(email, { d: "robohash" });
+
     const userData = {
       password: passwordHash,
       email,
+      avatarUrl,
     };
 
     const user = await User.exists({ email });
