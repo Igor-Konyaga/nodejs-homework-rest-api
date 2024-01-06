@@ -11,6 +11,7 @@ const { HttpError } = require("../utils/httpError");
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const { userToken } = require("../services/jwtServices");
+const { changeResizeAvatar } = require("../utils/avatarHandler");
 
 exports.register = async (req, res, next) => {
   try {
@@ -63,11 +64,12 @@ exports.login = async (req, res, next) => {
 
     const token = userToken(user.id);
 
-    res.status(200).json({ ResponseBody: { token, user } });
+    res.status(200).json({ token, user });
   } catch (error) {
     next(error);
   }
 };
+
 
 exports.logout = (req, res, next) => {
   try {
@@ -129,6 +131,8 @@ exports.updateUserAvatar = async (req, res, next) => {
     await fs.rename(currentPath, newPath);
 
     const avatarUrl = path.join("avatars", uniqueFileName);
+
+    changeResizeAvatar(avatarUrl);
 
     const updateUserAvatar = await User.findByIdAndUpdate(_id, { avatarUrl });
 
