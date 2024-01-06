@@ -1,4 +1,6 @@
 const gravatar = require("gravatar");
+const fs = require("fs/promises");
+const path = require("path");
 
 const {
   registerUserValidator,
@@ -111,13 +113,30 @@ exports.updateSubscriptionUser = async (req, res, next) => {
 
 exports.updateUserAvatar = async (req, res, next) => {
   try {
-    if (!req.file) throw new HttpError(401, "Not authorized");
+    const { path: currentPath, originalname } = req.file;
+    const { _id } = req.user;
 
-    req.user.avatarUrl = req.file.path.replace("tmp", "");
+    const uniqueFileName = `${_id}-${originalname}`;
+
+    const newPath = path.join(
+      __dirname,
+      "../",
+      "public",
+      "avatars",
+      uniqueFileName
+    );
+
+    await fs.rename(currentPath, newPath);
+
+    const avatarUrl = path.join("avatars", uniqueFileName);
+
+    const updateUserAvatar = await User.findByIdAndUpdate(_id, { avatarUrl });
+
+    if (!updateUserAvatar) throw new HttpError(401, "Not authorized");
 
     res.status(200).json({
       ResponseBody: {
-        avatarUrl: req.user.avatarUrl,
+        avatarUrl,
       },
     });
   } catch (error) {

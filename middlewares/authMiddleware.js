@@ -1,5 +1,5 @@
 const multer = require("multer");
-const uuid = require("uuid").v4;
+const path = require("path");
 const User = require("../models/userModel");
 const { checkToken } = require("../services/jwtServices");
 const { HttpError } = require("../utils/httpError");
@@ -28,15 +28,14 @@ exports.protect = async (req, res, next) => {
   }
 };
 
+const dirName = path.join(__dirname, "../", "tmp");
+
 const multerStorage = multer.diskStorage({
   destination: (req, file, cbk) => {
-    cbk(null, "tmp");
+    cbk(null, dirName);
   },
   filename: (req, file, cbk) => {
-    const extension = file.mimetype.split("/")[1];
-
-    cbk(null, `${req.user.id}-${uuid()}.${extension}`);
-	 
+    cbk(null, file.originalname);
   },
 });
 
@@ -54,4 +53,4 @@ exports.uploadAvatar = multer({
   limits: {
     fileSize: 2 * 1024 * 1024,
   },
-}).single("avatar");
+});
