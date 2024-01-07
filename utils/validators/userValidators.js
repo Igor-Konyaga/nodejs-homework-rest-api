@@ -27,9 +27,17 @@ const subscriptionUserValidator = (data) => {
     })
     .validate(data);
 };
+const updateAvatarValidator = (data) => {
+  return Joi.object()
+    .keys({
+      avatarUrl: Joi.string().required(),
+    })
+    .validate(data);
+};
 
 module.exports = {
   registerUserValidator,
   loginUserValidator,
   subscriptionUserValidator,
+  updateAvatarValidator,
 };

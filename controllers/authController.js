@@ -6,6 +6,7 @@ const {
   registerUserValidator,
   loginUserValidator,
   subscriptionUserValidator,
+  updateAvatarValidator,
 } = require("../utils/validators/userValidators");
 const { HttpError } = require("../utils/httpError");
 const User = require("../models/userModel");
@@ -70,7 +71,6 @@ exports.login = async (req, res, next) => {
   }
 };
 
-
 exports.logout = (req, res, next) => {
   try {
     req.user.token = undefined;
@@ -115,6 +115,8 @@ exports.updateSubscriptionUser = async (req, res, next) => {
 
 exports.updateUserAvatar = async (req, res, next) => {
   try {
+    if (!req.file) throw new HttpError(400, "The image file is missing");
+
     const { path: currentPath, originalname } = req.file;
     const { _id } = req.user;
 
