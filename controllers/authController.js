@@ -1,12 +1,18 @@
+const gravatar = require("gravatar");
+const fs = require("fs/promises");
+const path = require("path");
+
 const {
   registerUserValidator,
   loginUserValidator,
   subscriptionUserValidator,
+  updateAvatarValidator,
 } = require("../utils/validators/userValidators");
 const { HttpError } = require("../utils/httpError");
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const { userToken } = require("../services/jwtServices");
+const { changeResizeAvatar } = require("../utils/avatarHandler");
 
 exports.register = async (req, res, next) => {
   try {
@@ -18,9 +24,12 @@ exports.register = async (req, res, next) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    const avatarUrl = gravatar.url(email, { d: "robohash" });
+
     const userData = {
       password: passwordHash,
       email,
+      avatarUrl,
     };
 
     const user = await User.exists({ email });
@@ -56,7 +65,7 @@ exports.login = async (req, res, next) => {
 
     const token = userToken(user.id);
 
-    res.status(200).json({ ResponseBody: { token, user } });
+    res.status(200).json({ token, user });
   } catch (error) {
     next(error);
   }
@@ -99,6 +108,43 @@ exports.updateSubscriptionUser = async (req, res, next) => {
     if (!updateUser) throw new HttpError(404, "Not Found");
 
     res.status(200).json(updateUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateUserAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) throw new HttpError(400, "The image file is missing");
+
+    const { path: currentPath, originalname } = req.file;
+    const { _id } = req.user;
+
+    const uniqueFileName = `${_id}-${originalname}`;
+
+    const newPath = path.join(
+      __dirname,
+      "../",
+      "public",
+      "avatars",
+      uniqueFileName
+    );
+
+    await fs.rename(currentPath, newPath);
+
+    const avatarUrl = path.join("avatars", uniqueFileName);
+
+    changeResizeAvatar(avatarUrl);
+
+    const updateUserAvatar = await User.findByIdAndUpdate(_id, { avatarUrl });
+
+    if (!updateUserAvatar) throw new HttpError(401, "Not authorized");
+
+    res.status(200).json({
+      ResponseBody: {
+        avatarUrl,
+      },
+    });
   } catch (error) {
     next(error);
   }

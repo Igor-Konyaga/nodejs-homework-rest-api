@@ -1,3 +1,5 @@
+const multer = require("multer");
+const path = require("path");
 const User = require("../models/userModel");
 const { checkToken } = require("../services/jwtServices");
 const { HttpError } = require("../utils/httpError");
@@ -22,6 +24,33 @@ exports.protect = async (req, res, next) => {
 
     next();
   } catch (error) {
-	next(error)
+    next(error);
   }
 };
+
+const dirName = path.join(__dirname, "../", "tmp");
+
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cbk) => {
+    cbk(null, dirName);
+  },
+  filename: (req, file, cbk) => {
+    cbk(null, file.originalname);
+  },
+});
+
+const multerFilter = (req, file, cbk) => {
+  if (file.mimetype.startsWith("image/")) {
+    cbk(null, true);
+  } else {
+    cbk(new HttpError(400, "Bad Request"), false);
+  }
+};
+
+exports.uploadAvatar = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024,
+  },
+});
