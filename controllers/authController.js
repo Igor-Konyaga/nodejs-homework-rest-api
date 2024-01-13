@@ -1,18 +1,21 @@
 const gravatar = require("gravatar");
 const fs = require("fs/promises");
 const path = require("path");
+const bcrypt = require("bcrypt");
+const { nanoid } = require("nanoid");
 
 const {
   registerUserValidator,
   loginUserValidator,
   subscriptionUserValidator,
   updateAvatarValidator,
+  emailValidator,
 } = require("../utils/validators/userValidators");
 const { HttpError } = require("../utils/httpError");
 const User = require("../models/userModel");
-const bcrypt = require("bcrypt");
 const { userToken } = require("../services/jwtServices");
 const { changeResizeAvatar } = require("../utils/avatarHandler");
+const { sendEmail } = require("../utils/sendEmail");
 
 exports.register = async (req, res, next) => {
   try {
@@ -26,10 +29,13 @@ exports.register = async (req, res, next) => {
 
     const avatarUrl = gravatar.url(email, { d: "robohash" });
 
+    const verificationToken = nanoid();
+
     const userData = {
       password: passwordHash,
       email,
       avatarUrl,
+      verificationToken,
     };
 
     const user = await User.exists({ email });
@@ -40,10 +46,71 @@ exports.register = async (req, res, next) => {
 
     newUser.password = undefined;
 
+    const { BASE_URL } = process.env;
+
+    const verifyEmail = {
+      to: email,
+      subject: "Verify Email",
+      html: `<a href="${BASE_URL}/api/users/verify/${verificationToken}"> Click verify Email </a>`,
+    };
+
+    await sendEmail(verifyEmail);
+
     res.status(201).json({
       ResponseBody: { message: "Success", user: newUser },
     });
   } catch (error) {}
+};
+
+exports.verificationEmail = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+
+    const user = await User.findOne({ verificationToken });
+
+    if (!user) throw new HttpError(404, "Not Found");
+    if (user.verify)
+      throw new HttpError(401, "Verification has already been passed");
+
+    await User.findByIdAndUpdate(user._id, {
+      verificationToken: null,
+      verify: true,
+    });
+
+    res.status(200).json({
+      ResponseBody: {
+        message: "Verification successful",
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.resendingEmail = async (req, res, next) => {
+  const { value, error } = emailValidator(req.body);
+
+  if (error) throw new HttpError(400, "Missing required field email");
+
+  const user = await User.findOne({ email: value.email });
+
+  if (!user) throw new HttpError(400, "User Not Found");
+  if (user.verify)
+    throw new HttpError(401, "Verification has already been passed");
+
+  const verifyEmail = {
+    to: value.email,
+    subject: "Verify Email",
+    html: `<a href="${BASE_URL}/api/users/verify/${user.verificationToken}"> Click verify Email </a>`,
+  };
+
+  await sendEmail(verifyEmail);
+
+  res.status(200).json({
+    ResponseBody: {
+      message: "Verification email sent",
+    },
+  });
 };
 
 exports.login = async (req, res, next) => {
@@ -62,6 +129,8 @@ exports.login = async (req, res, next) => {
       throw new HttpError(401, "Email or password is wrong");
 
     user.password = undefined;
+
+    if (!user.verify) throw new HttpError(401, "Email is not verified");
 
     const token = userToken(user.id);
 

@@ -6,6 +6,8 @@ const {
   current,
   updateSubscriptionUser,
   updateUserAvatar,
+  verificationEmail,
+  resendingEmail,
 } = require("../../controllers/authController");
 const { protect, uploadAvatar } = require("../../middlewares/authMiddleware");
 
@@ -13,6 +15,9 @@ const router = express.Router();
 
 router.post("/register", register);
 router.post("/login", login);
+
+router.get("/verify/:verificationToken", verificationEmail);
+router.post("/verify", resendingEmail);
 
 router.use(protect);
 
