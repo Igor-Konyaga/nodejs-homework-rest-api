@@ -12,6 +12,7 @@ const registerUserValidator = (data) => {
     })
     .validate(data);
 };
+
 const loginUserValidator = (data) => {
   return Joi.object()
     .keys({
@@ -20,6 +21,15 @@ const loginUserValidator = (data) => {
     })
     .validate(data);
 };
+
+const emailValidator = (data) => {
+  return Joi.object()
+    .keys({
+      email: Joi.string().email().required(),
+    })
+    .validate(data);
+};
+
 const subscriptionUserValidator = (data) => {
   return Joi.object()
     .keys({
@@ -40,4 +50,5 @@ module.exports = {
   loginUserValidator,
   subscriptionUserValidator,
   updateAvatarValidator,
+  emailValidator,
 };
